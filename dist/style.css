@@ -1,0 +1,89 @@
+* {
+  font-family: "Orbitron", sans-serif;
+}
+
+body,
+html {
+  padding: 0;
+  margin: 0;
+  background-color: #464646;
+  color: #ffffff;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.infobox {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 40px;
+  font-size: 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+}
+
+.info-item + .info-item {
+  margin-left: 50px;
+}
+
+.key {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ffffff;
+  border-radius: 2px;
+  padding: 5px;
+  margin: 5px;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.space {
+  min-width: 100px;
+}
+
+canvas {
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.game-name {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  padding: 20px;
+}
+
+.game-name-accent {
+  font-size: 40px;
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+a {
+  color: white;
+  text-decoration: underline;
+}
+
+.built-by {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  padding: 20px;
+}
+
+.pink {
+  color: #fa1ed2;
+}
+
+.white {
+  color: #ffffff;
+}
