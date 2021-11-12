@@ -17,6 +17,7 @@ const initPlayer = () => {
         {
             viewDirection: 1,
             isPraying: false,
+            diggingMode: false,
             soul: {
                 current: 60,
                 total: 60

@@ -12,43 +12,81 @@ const initKeaboard = () => {
     k.onKeyPress("right", () => {
         player.viewDirection = 1;
         player.flipX(false);
-        player.enterState("run");
+        if (player.diggingMode) {
+            player.dig("right")
+        } else {
+            player.enterState("run");
+        }
     });
 
     k.onKeyPress("left", () => {
         player.viewDirection = -1;
         player.flipX(true);
-        player.enterState("run");
+        if (player.diggingMode) {
+            player.dig("left")
+        } else {
+            player.enterState("run");
+        }
+    });
+
+    k.onKeyPress("up", () => {
+        if (player.diggingMode) {
+            player.dig("top")
+        }
+    });
+
+    k.onKeyPress("down", () => {
+        if (player.diggingMode) {
+            player.dig("bottom")
+        }
     });
 
     k.onKeyDown("right", () => {
-        if (!k.isKeyDown("up") && !k.isKeyDown("down") && !player.isPraying) {
+        if (!player.diggingMode && !player.isPraying) {
             move();
         }
     });
 
 
     k.onKeyDown("left", () => {
-        if (!k.isKeyDown("up") && !k.isKeyDown("down") && !player.isPraying) {
+        if (!player.diggingMode && !player.isPraying) {
             move();
         }
     });
 
     k.onKeyRelease("right", () => {
-        player.play("idle", { loop: true })
-        player.enterState("idle");
+        if (!player.diggingMode) {
+            player.play("idle", { loop: true })
+            player.enterState("idle");
+        }
     });
 
     k.onKeyRelease("left", () => {
-        player.play("idle", { loop: true })
-        player.enterState("idle");
+        if (!player.diggingMode) {
+            player.play("idle", { loop: true })
+            player.enterState("idle");
+        }
     });
 
     k.onKeyPress("space", function () {
-        player.enterState("jump");
+        if (!player.diggingMode) {
+            player.enterState("jump");
+        }
     });
 
-    k.onKeyPress("x", () => {
+
+    k.onKeyDown("x", () => {
+        if (player.state !== "idle") {
+            player.enterState("idle");
+        }
+        player.diggingMode = true;
+    });
+
+    k.onKeyRelease("x", () => {
+        player.diggingMode = false;
+    })
+
+    /*k.onKeyPress("x", () => {
         if (player.timeSinceLastDig < constants.digDelay || player.isPraying) {
             return;
         }
@@ -61,7 +99,7 @@ const initKeaboard = () => {
         }
 
         player.dig(direction);
-    });
+    });*/
 
     k.onKeyPress("c", () => {
         player.isPraying = true;

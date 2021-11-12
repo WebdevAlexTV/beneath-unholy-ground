@@ -11,9 +11,8 @@ const digger = () => {
 
             if (direction !== "top" && direction != "bottom") {
                 posX += this.viewDirection * (constants.tileSize / 2);
-            }
-            if (direction.startsWith("top") || direction.startsWith("bottom")) {
-                posY += (direction.startsWith("top") ? -1 : 1) * (constants.tileSize / 2);
+            } else if (direction === "top" || direction === "bottom") {
+                posY += (direction === "top" ? -1 : 1) * (constants.tileSize / 2);
             }
 
             const rotation = direction !== "" ? constants.shovelRotations[direction] : (this.viewDirection === -1 ? constants.shovelRotations["left"] : constants.shovelRotations["right"])
@@ -39,7 +38,7 @@ const digger = () => {
                 if (dirt.isDamaged) {
                     dirt.frame = 11;
                     k.wait(0.1, () => {
-                        if (Math.random() > 0.5) {
+                        if (Math.random() > 0.95) {
                             spawnZombie(dirt.pos.x, dirt.pos.y);
                         }
                         k.destroy(dirt);
