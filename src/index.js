@@ -1,10 +1,10 @@
 import k from "./kaboom";
-import level1 from "./scenes/level1";
+import game from "./scenes/game";
 
 import loadSprites from "./sprites";
 
 loadSprites();
 
-k.scene("level1", level1);
+k.scene("game", game);
 
-k.go("level1");
+k.go("game");
