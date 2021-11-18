@@ -99,6 +99,8 @@ const loadSprites = () => {
       },
     },
   });
+
+  k.loadSprite("fog", "fog.png");
 };
 
 export default loadSprites;
