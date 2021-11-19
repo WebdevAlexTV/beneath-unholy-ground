@@ -4,8 +4,15 @@ import initPlayer from "../player";
 import initKeaboard from "../keyboard";
 import level from "../level";
 import initUi from "../ui";
+import { AudioManager } from "../audio";
 
 const game = () => {
+  const audioManager = new AudioManager();
+
+  audioManager.play("background_music", { volume: 0.1, loop: true });
+
+  let lastCrowSound = 0;
+
   const height = level.length;
   const width = level[0].length;
 
@@ -65,6 +72,14 @@ const game = () => {
 
   player.onUpdate(() => {
     fog.pos = player.pos;
+    if (lastCrowSound === 0) {
+      audioManager.play("crow", { volume: 0.3 });
+    }
+    lastCrowSound += k.dt();
+
+    if (lastCrowSound > 5 && Math.random() > 0.5) {
+      lastCrowSound = 0;
+    }
   });
 
   /**

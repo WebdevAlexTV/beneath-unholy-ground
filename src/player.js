@@ -1,9 +1,12 @@
+import { AudioManager } from "./audio";
 import digger from "./components/digger";
 import constants from "./constants";
 import k from "./kaboom";
 import level from "./level";
 
 const initPlayer = () => {
+  const audioManager = new AudioManager();
+
   const player = k.add([
     k.pos(16, constants.tileSize / 2),
     k.sprite("player", { frame: 0 }),
@@ -27,12 +30,13 @@ const initPlayer = () => {
       isPraying: false,
       diggingMode: false,
       soul: {
-        current: 32,
+        current: 40,
         total: 60,
       },
       deamonForm: false,
       timeSinceLastDig: constants.digDelay,
       shovelDirection: null,
+      runSound: null,
       useDefaultSprite() {
         this.use(k.sprite("player"));
         this.flipX(this.viewDirection !== 1);
@@ -44,9 +48,11 @@ const initPlayer = () => {
       useDeamonForm() {
         this.changeForm("deamon");
         this.diggingMode = false;
+        audioManager.play("deamon");
       },
       useHumanForm() {
         this.changeForm("human");
+        audioManager.play("holy");
       },
       changeForm(form) {
         if (form === "human") {
@@ -76,7 +82,18 @@ const initPlayer = () => {
   });
 
   player.onStateEnter("run", () => {
+    player.runSound = audioManager.play("run", {
+      loop: true,
+      speed: 1.5,
+      volume: 0.1,
+    });
     player.play("run", { loop: true });
+  });
+
+  player.onStateLeave("run", () => {
+    if (player.runSound !== null) {
+      player.runSound.pause();
+    }
   });
 
   player.onStateEnter("attack", () => {

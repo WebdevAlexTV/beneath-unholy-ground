@@ -1,8 +1,11 @@
 import k from "../kaboom";
 import constants from "../constants";
 import spawnZombie from "../enemies/zombie";
+import { AudioManager } from "../audio";
 
 const digger = () => {
+  const audioManager = new AudioManager();
+
   return {
     dig(direction) {
       let posX = this.pos.x;
@@ -26,6 +29,7 @@ const digger = () => {
       ]);
 
       shovel.collides("dirt", (dirt) => {
+        audioManager.play("dig");
         if (dirt.isSolid) {
           return;
         }
