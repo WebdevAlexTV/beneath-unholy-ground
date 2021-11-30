@@ -1,4 +1,9 @@
 export default [
+    "LSSSSSSSSSSSSSSSSSSR",
+    "LSSSSSSSSSSSSSSSSSSR",
+    "LSSSSSSSSSSSSSSSSSSR",
+    "LSSSSSSSSSSSSSSSSSSR",
+    "L                  R",
     "L                  R",
     "L                  R",
     "L                  R",

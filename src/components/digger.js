@@ -26,25 +26,20 @@ const digger = () => {
         k.area(),
         k.rect(1, 2),
         k.opacity(0),
+        {
+          hit: false
+        }
       ]);
 
       shovel.collides("dirt", (dirt) => {
-        audioManager.play("dig");
         if (dirt.isSolid) {
           return;
         }
-        if (dirt.isDamaged) {
-          dirt.frame = 11;
-          k.wait(0.1, () => {
-            if (Math.random() > 0.95) {
-              spawnZombie(dirt.pos.x, dirt.pos.y);
-            }
-            k.destroy(dirt);
-          });
-        } else {
-          dirt.isDamaged = true;
-          dirt.frame = 7;
+        if (!shovel.hit) {
+          shovel.hit = true;
+          hurtDirt(dirt);
         }
+        audioManager.play("dig");
       });
 
       k.wait(0.05, () => {
@@ -58,5 +53,9 @@ const digger = () => {
     },
   };
 };
+
+export const hurtDirt = (dirt) => {
+  dirt.damage();
+}
 
 export default digger;

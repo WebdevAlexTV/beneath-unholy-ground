@@ -3,12 +3,16 @@ import digger from "./components/digger";
 import constants from "./constants";
 import k from "./kaboom";
 import level from "./level";
+import { showPriestComment } from "./ui";
 
 const initPlayer = () => {
   const audioManager = new AudioManager();
 
+  let shine = null;
+
   const player = k.add([
     k.pos(16, constants.tileSize / 2),
+    // k.pos(24, level.length * 8 - 8),
     k.sprite("player", { frame: 0 }),
     k.solid(),
     k.area(),
@@ -22,21 +26,33 @@ const initPlayer = () => {
       "shovel_idle",
       "shovel",
       "attack",
+      "die"
     ]),
     digger(),
     "player",
     {
       viewDirection: 1,
       isPraying: false,
+      comment: null,
       diggingMode: false,
       soul: {
-        current: 40,
+        current: 60,
         total: 60,
       },
-      deamonForm: false,
+      dead: false,
+      demonForm: false,
       timeSinceLastDig: constants.digDelay,
       shovelDirection: null,
       runSound: null,
+      treasures: 0,
+      touchingUnholyReliquiary: false,
+      damageSoul(damage) {
+        this.soul.current -= damage;
+        if (this.soul.current < 0) {
+          this.soul.current = 0;
+        }
+        audioManager.play("pain");
+      },
       useDefaultSprite() {
         this.use(k.sprite("player"));
         this.flipX(this.viewDirection !== 1);
@@ -45,10 +61,9 @@ const initPlayer = () => {
         player.use(k.sprite(`player_shovel_${animationDirection}`));
         player.flipX(player.viewDirection !== 1);
       },
-      useDeamonForm() {
-        this.changeForm("deamon");
-        this.diggingMode = false;
-        audioManager.play("deamon");
+      useDemonForm() {
+        this.changeForm("demon");
+        audioManager.play("demon");
       },
       useHumanForm() {
         this.changeForm("human");
@@ -56,11 +71,12 @@ const initPlayer = () => {
       },
       changeForm(form) {
         if (form === "human") {
-          this.deamonForm = false;
           this.use(k.sprite("player"));
+          this.demonForm = false;
         } else {
-          this.deamonForm = true;
-          this.use(k.sprite("player_deamon"));
+          this.diggingMode = false;
+          this.use(k.sprite("player_demon"));
+          this.demonForm = true;
         }
         this.flipX(this.viewDirection !== 1);
 
@@ -77,10 +93,16 @@ const initPlayer = () => {
     },
   ]);
 
+  /**
+   * Idle
+   */
   player.onStateEnter("idle", () => {
     player.play("idle", { loop: true });
   });
 
+  /**
+   * Run
+   */
   player.onStateEnter("run", () => {
     player.runSound = audioManager.play("run", {
       loop: true,
@@ -96,8 +118,23 @@ const initPlayer = () => {
     }
   });
 
+  /**
+   * Die
+   */
+  player.onStateEnter("die", () => {
+    player.play("die", {
+      onEnd: () => {
+        k.go("game-over");
+      }
+    });
+    audioManager.play("player_die");
+  });
+
+  /**
+   * Attack
+   */
   player.onStateEnter("attack", () => {
-    if (!player.deamonForm) {
+    if (!player.demonForm) {
       player.enterState("idle");
       return;
     }
@@ -106,15 +143,76 @@ const initPlayer = () => {
         player.enterState("idle");
       },
     });
+
+    const attackEffect = k.add([
+      k.sprite("hit"),
+      k.pos(player.pos.x + (4 * player.viewDirection), player.pos.y),
+      k.origin("center"),
+      k.area(),
+      "player_attack",
+      {
+        hit: false
+      }
+    ]);
+
+    attackEffect.flipX(player.viewDirection === -1);
+
+    attackEffect.play("hit", {
+      speed: 30,
+      onEnd: () => {
+        k.destroy(attackEffect);
+      }
+    });
+
+    k.onCollide("player_attack", "zombie", (attack, zombie) => {
+      if (zombie.dead) {
+        return;
+      }
+      if (!attack.hit) {
+        attack.hit = true;
+        audioManager.play("hit");
+        if (zombie.hurt) {
+          zombie.dead = true;
+          zombie.enterState("die");
+        } else {
+          zombie.hurt = true;
+        }
+      }
+
+    });
   });
 
+  /**
+   * Pray
+   */
   player.onStateEnter("pray", () => {
+    showPriestComment("Father, heal my soul!", true);
+    shine = k.add([
+      k.sprite("holy_shine"),
+      k.pos(player.pos.x, player.pos.y - 30),
+      k.origin("center"),
+    ]);
+
     player.isPraying = true;
     player.play("pray", { loop: true });
   });
 
   player.onStateLeave("pray", () => {
+    if (shine) {
+      k.destroy(shine);
+    }
+    if (player.comment) {
+      k.destroy(player.comment);
+      player.comment = null;
+    }
     player.isPraying = false;
+  });
+
+  /**
+   * Shovel
+   */
+  player.onStateEnter("shovel_idle", () => {
+    player.play("shovel_idle", { loop: true });
   });
 
   player.onStateEnter("shovel", (direction) => {
@@ -143,27 +241,27 @@ const initPlayer = () => {
   });
 
   player.onStateLeave("shovel", (ey) => {
-    player.useDefaultSprite();
     player.use(k.body());
-    if (player.shovelDirection === "right") {
-      player.pos.x = player.pos.x - 2;
-    } else if (player.shovelDirection === "left") {
-      player.pos.x = player.pos.x + 2;
+
+    if (!player.demonForm) {
+      player.useDefaultSprite();
+      if (player.shovelDirection === "right") {
+        player.pos.x = player.pos.x - 2;
+      } else if (player.shovelDirection === "left") {
+        player.pos.x = player.pos.x + 2;
+      }
     }
+
     player.shovelDirection = null;
   });
 
-  player.onStateEnter("pray", () => {
-    player.play("pray", { loop: true });
-  });
 
+  /**
+   * Jump
+   */
   player.onStateEnter("jump", () => {
     player.play("jump");
     player.jump(constants.jumpForce);
-  });
-
-  player.onStateEnter("shovel_idle", () => {
-    player.play("shovel_idle", { loop: true });
   });
 
   player.on("ground", () => {
@@ -175,6 +273,13 @@ const initPlayer = () => {
   });
 
   player.onUpdate(() => {
+    if (player.soul.current <= 0) {
+      if (player.state !== "die") {
+        player.dead = true;
+        player.enterState("die");
+      }
+      return;
+    }
     // Adjust the camera position according to player movement.
     const posX = k.width() / 2;
     let posY = player.pos.y;
@@ -188,11 +293,11 @@ const initPlayer = () => {
     player.timeSinceLastDig += k.dt();
 
     if ((100 / player.soul.total) * player.soul.current < 50) {
-      if (!player.deamonForm) {
-        player.useDeamonForm();
+      if (!player.demonForm) {
+        player.useDemonForm();
       }
     } else {
-      if (player.deamonForm) {
+      if (player.demonForm) {
         player.useHumanForm();
       }
     }

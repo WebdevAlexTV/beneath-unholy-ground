@@ -1,3 +1,4 @@
+import constants from "./constants";
 import k from "./kaboom";
 import { getPlayer } from "./player";
 
@@ -20,7 +21,17 @@ const initUi = () => {
     k.fixed(),
   ]);
 
-  k.action(() => {
+  const treasuresCounter = k.add([
+    k.text("0 / 10", {
+      size: 6
+    }),
+    k.pos(k.width() - 4, k.height() - 4),
+    k.layer("ui"),
+    k.fixed(),
+    k.origin("right"),
+  ]);
+
+  k.onUpdate(() => {
     meter.width = Math.floor(
       ((100 / player.soul.total) * player.soul.current) / 2
     );
@@ -35,20 +46,79 @@ const initUi = () => {
     } else {
       meter.color = k.rgb(255, 255, 255);
     }
+
+    treasuresCounter.text = player.treasures + "/" + constants.treasuresTotal;
   });
-  /*k.action(() => {
-      if (tank.lastShot > 0) {
-        tank.lastShot = Math.max(tank.lastShot - k.dt(), 0);
-        meter.width = Math.floor((SHOOT_COOLDOWN - tank.lastShot) * 20);
-      } else {
-        if (!tank.canShoot) {
-          tank.canShoot = true;
-          meter.color.red = 0;
-          meter.color.green = 100;
-          meter.color.blue = 0;
-        }
-      }
-    });*/
 };
+
+export const initButtons = () => {
+
+  /*k.onHover("button", (button) => {
+    k.cursor("pointer");
+  }, () => {
+    k.cursor("default");
+  });*/
+
+  k.onClick("button", (button) => {
+    button.clickHandler();
+  });
+
+  k.onHover("button_background", (background) => {
+    background.color = k.rgb(100, 0, 0);
+    //k.cursor("pointer");
+  }, (background) => {
+    background.color = k.rgb(0, 0, 0);
+    //k.cursor("default");
+  })
+}
+
+export const showPriestComment = (comment, keep = false) => {
+  const player = getPlayer();
+
+  if (player.comment !== null) {
+    k.destroy(player.comment);
+  }
+  player.comment = k.add([
+    k.text(comment, {
+      size: 6
+    }),
+    k.pos(k.width() / 2, 10),
+    k.layer("ui"),
+    k.fixed(),
+    k.origin("center"),
+  ]);
+
+  if (!keep) {
+    k.wait(2, () => {
+      if (player.comment !== null && player.comment.text === comment) {
+        k.destroy(player.comment);
+        player.comment = null;
+      }
+    });
+  }
+}
+
+export const createButton = (posX, posY, text, clickHandler = () => { }) => {
+  const buttonText = k.add([
+    k.text(text, { size: 4 }),
+    k.pos(posX, posY),
+    k.layer("ui"),
+    k.origin("center"),
+    k.area({ width: 48, height: 10 }),
+    "button",
+    {
+      clickHandler: clickHandler
+    }
+  ]);
+  const button = k.add([
+    k.pos(buttonText.pos.x, buttonText.pos.y),
+    k.rect(48, 8),
+    k.color(k.rgb(0, 0, 0)),
+    k.outline(1, k.rgb(255, 255, 255)),
+    k.origin("center"),
+    k.area(),
+    "button_background"
+  ]);
+}
 
 export default initUi;
